@@ -1,5 +1,4 @@
-# gcp-iot-core-golang-sample
-GCP IoT Core sample written in Golang
+GCP Cloud IoT Core sample written in Golang
 
 # License
 Copyright 2017 Takeshi Watanabe
