@@ -1,0 +1,19 @@
+# Golang CircleCI 2.0 configuration file
+#
+# Check https://circleci.com/docs/2.0/language-go/ for more details
+version: 2
+jobs:
+  build:
+    docker:
+      # specify the version
+      - image: circleci/golang:1.9
+
+    working_directory: /go/src/github.com/fusic/gcp-iot-core-golang-sample
+    steps:
+      - checkout
+
+      # specify any bash command here prefixed with `run: `
+      - run: go get -u github.com/golang/dep/cmd/dep
+      - run: dep ensure
+      - run: go build
+      - run: ./gcp-iot-core-golang-sample -project_id=my-project -registry_id=my-registry -device_id=my-device -algorithm=RS256 -private_key_file=./rsa_private.pem -public_key_file=./rsa_cert.pem -run_test
