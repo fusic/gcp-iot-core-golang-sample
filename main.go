@@ -69,7 +69,7 @@ func main() {
 
 	// configure MQTT client
 	opts := mqtt.NewClientOptions().
-		AddBroker(fmt.Sprintf("ssl://mqtt.googleapis.com:8883")).
+		AddBroker("ssl://mqtt.googleapis.com:8883").
 		SetClientID(client_id).
 		SetUsername(username).
 		SetTLSConfig(&tls.Config{ MinVersion: tls.VersionTLS12 }).
