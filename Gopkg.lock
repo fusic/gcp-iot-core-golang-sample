@@ -2,6 +2,13 @@
 
 
 [[projects]]
+  branch = "fix_for_gcp"
+  name = "github.com/VolantMQ/volantmq"
+  packages = [".","auth","clients","configuration","connection","packet","persistence","routines","subscriber","systree","topics","topics/mem","topics/types","transport","types"]
+  revision = "91c15709e9da3d485d9e7ede6cb99bcb1ec73eec"
+  source = "github.com/fusic/volantmq"
+
+[[projects]]
   name = "github.com/dgrijalva/jwt-go"
   packages = ["."]
   revision = "dbeaa9332f19a944acb5736b4456cfcc02140e29"
@@ -14,14 +21,74 @@
   version = "v1.1.0"
 
 [[projects]]
+  name = "github.com/gorilla/websocket"
+  packages = ["."]
+  revision = "ea4d1f681babbce9545c9c5f3d5194a789c89f5b"
+  version = "v1.2.0"
+
+[[projects]]
+  name = "github.com/pborman/uuid"
+  packages = ["."]
+  revision = "e790cca94e6cc75c7064b1332e63811d4aae1a53"
+  version = "v1.1"
+
+[[projects]]
+  name = "github.com/phayes/freeport"
+  packages = ["."]
+  revision = "b8543db493a5ed890c5499e935e2cad7504f3a04"
+  version = "1.0.2"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/troian/easygo"
+  packages = ["netpoll"]
+  revision = "b69abaaf8a8503f3102d80d17d20515041bf9ef5"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/troian/omap"
+  packages = ["."]
+  revision = "bf92c506ddb0f2cc90f2ed8aab7dad6dce349194"
+
+[[projects]]
+  name = "go.uber.org/atomic"
+  packages = ["."]
+  revision = "8474b86a5a6f79c443ce4b2992817ff32cf208b8"
+  version = "v1.3.1"
+
+[[projects]]
+  name = "go.uber.org/multierr"
+  packages = ["."]
+  revision = "3c4937480c32f4c13a875a1829af76c98ca3d40a"
+  version = "v1.1.0"
+
+[[projects]]
+  name = "go.uber.org/zap"
+  packages = [".","buffer","internal/bufferpool","internal/color","internal/exit","zapcore"]
+  revision = "35aad584952c3e7020db7b839f6b102de6271f89"
+  version = "v1.7.1"
+
+[[projects]]
   branch = "master"
   name = "golang.org/x/net"
   packages = ["proxy","websocket"]
   revision = "d866cfc389cec985d6fda2859936a575a55a3ab6"
 
+[[projects]]
+  branch = "master"
+  name = "golang.org/x/sync"
+  packages = ["syncmap"]
+  revision = "fd80eb99c8f653c847d294a001bdf2a3a6f768f5"
+
+[[projects]]
+  branch = "master"
+  name = "golang.org/x/sys"
+  packages = ["unix"]
+  revision = "d5840adf789d732bc8b00f37b26ca956a7cc8e79"
+
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "42f98b7ceef4e66fa0c65f9747a494829d4a2b9e8128a073e33003a57751a9a6"
+  inputs-digest = "1fbb2ec15af5a6c99925b84cc2aefe2bec657ee042c852368e9117fc00e49319"
   solver-name = "gps-cdcl"
   solver-version = 1

@@ -5,10 +5,18 @@ import (
 	"flag"
 	"fmt"
 	"io/ioutil"
+	"strconv"
 	"time"
 
 	jwt "github.com/dgrijalva/jwt-go"
 	mqtt "github.com/eclipse/paho.mqtt.golang"
+
+	"github.com/phayes/freeport"
+
+	"github.com/VolantMQ/volantmq"
+	"github.com/VolantMQ/volantmq/auth"
+	"github.com/VolantMQ/volantmq/transport"
+	"github.com/VolantMQ/volantmq/packet"
 )
 
 // GCP settings passed by CLI parameters
@@ -17,7 +25,11 @@ var (
 	registry    = flag.String("registry_id", "", "Registry ID")
 	device      = flag.String("device_id", "", "Device ID")
 	algorithm   = flag.String("algorithm", "", "Private Key Algorithm")
+	region      = flag.String("region", "us-central1", "GCP Region")
 	private_key = flag.String("private_key_file", "", "Path to Private Key File")
+	public_key  = flag.String("public_key_file", "", "Path to Public Key File")
+	run_test    = flag.Bool("run_test", false, "Run GCP simulation test using VolantMQ")
+	server      = flag.String("server", "ssl://mqtt.googleapis.com:8883", "MQTT Server")
 )
 
 // MQTT parameters
@@ -26,16 +38,108 @@ const (
 	qos = 1                // QoS 2 isn't supported in GCP
 	retain = false
 	username = "unused"    // always this value in GCP
-	region = "us-central1" // GCP region
 )
+
+type testGcpAuth struct {}
+
+func (a testGcpAuth) Password(user, pass string) auth.Status {
+	if user != "unused" { return auth.StatusDeny }
+
+	token, err := jwt.Parse(pass, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodRSA); !ok {
+			return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
+		}
+
+		keyData, err := ioutil.ReadFile(*public_key)
+		if err != nil { return nil, err }
+		key, err := jwt.ParseRSAPublicKeyFromPEM(keyData)
+		if err != nil { return nil, err }
+		return key, nil
+	})
+	if err != nil {
+		fmt.Println(err)
+		return auth.StatusDeny
+	}
+
+	// fmt.Println(token.Claims)
+	claims := token.Claims.(jwt.MapClaims)
+	if !claims.VerifyAudience(*project, true) {
+		fmt.Println("Invalid audience")
+		return auth.StatusDeny
+	}
+
+	t := time.Now()
+	if !claims.VerifyExpiresAt(t.Unix(), true) {
+		fmt.Println("Invalid expires at")
+		return auth.StatusDeny
+	}
+	if !claims.VerifyIssuedAt(t.Unix(), true) {
+		fmt.Println("Invalid issued at")
+		return auth.StatusDeny
+	}
+
+	// fmt.Println("JWT verification success!")
+	return auth.StatusAllow
+}
+
+func (a testGcpAuth) ACL(clientId, user, topic string, access auth.AccessType) auth.Status {
+	expClientId := fmt.Sprintf(
+		"projects/%s/locations/%s/registries/%s/devices/%s",
+		*project, *region, *registry, *device)
+
+	fmt.Println("Checking ACL:", clientId, user, topic, access)
+	if  user == "unused" &&
+		topic == fmt.Sprintf("/devices/%s/%s", *device, topicType) &&
+		clientId == expClientId {
+		return auth.StatusAllow
+	}
+
+	panic("ACL failed")
+	// return auth.StatusDeny
+}
 
 func main() {
 	flag.Parse()
 
+	// start test server with VolantMQ
+	if *run_test {
+		port, err := freeport.GetFreePort()
+		if err != nil { panic(err) }
+		*server = fmt.Sprintf("tcp://:%d", port)
+		listenerStatus := func(id string, status string) {
+			// fmt.Println("Listener status:", id, status)
+		}
+
+		if err := auth.Register("internal", &testGcpAuth{}); err != nil { panic(err) }
+		authMng, err := auth.NewManager("internal")
+		if err != nil { panic(err) }
+
+		srvCfg := volantmq.NewServerConfig()
+		srvCfg.Authenticators = "internal"
+		srvCfg.AllowedVersions = map[packet.ProtocolVersion]bool{
+			packet.ProtocolV31: false,
+			packet.ProtocolV311: true,
+			packet.ProtocolV50: false,
+		}
+		srvCfg.TransportStatus = listenerStatus
+		srv, err := volantmq.NewServer(srvCfg)
+		if err != nil { panic(err) }
+
+		err = srv.ListenAndServe(transport.NewConfigTCP(&transport.Config{
+			Port: strconv.Itoa(port), AuthManager: authMng}))
+		if err != nil { panic(err) }
+		defer func() {
+			time.Sleep(time.Millisecond * 100) // workaround for negative WaitGroup
+			srv.Close()
+		}()
+	}
+
 	// generate MQTT client
 	client_id := fmt.Sprintf(
 		"projects/%s/locations/%s/registries/%s/devices/%s",
-		*project, region, *registry, *device)
+		*project, *region, *registry, *device)
+
+	fmt.Println("Client ID:", client_id)
 
 	// load private key
 	keyData, err := ioutil.ReadFile(*private_key)
@@ -64,7 +168,7 @@ func main() {
 
 	// configure MQTT client
 	opts := mqtt.NewClientOptions().
-		AddBroker("ssl://mqtt.googleapis.com:8883").
+		AddBroker(*server).
 		SetClientID(client_id).
 		SetUsername(username).
 		SetTLSConfig(&tls.Config{ MinVersion: tls.VersionTLS12 }).
