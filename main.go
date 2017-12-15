@@ -2,8 +2,6 @@ package main
 
 import (
 	"crypto/tls"
-	"crypto/x509"
-	"encoding/pem"
 	"flag"
 	"fmt"
 	"io/ioutil"
@@ -43,15 +41,12 @@ func main() {
 	keyData, err := ioutil.ReadFile(*private_key)
 	if err != nil { panic(err) }
 
-	keyBlock, _ := pem.Decode(keyData)
-	if keyBlock == nil { panic(fmt.Errorf("failed parsing pem")) }
-
 	var key interface{}
 	switch *algorithm {
 	case "RS256":
-		key, err = x509.ParsePKCS8PrivateKey(keyBlock.Bytes)
+		key, err = jwt.ParseRSAPrivateKeyFromPEM(keyData)
 	case "ES256":
-		key, err = x509.ParseECPrivateKey(keyBlock.Bytes)
+		key, err = jwt.ParseECPrivateKeyFromPEM(keyData)
 	default:
 		panic(fmt.Errorf("Unknown algorithm: %s", *algorithm))
 	}
