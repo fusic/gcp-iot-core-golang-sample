@@ -1,5 +1,7 @@
 GCP Cloud IoT Core sample written in Golang
 
+I've wrote some article too: https://qiita.com/take_cheeze/items/2b28eff1d7f1092ea1ac
+
 ## How to use
 Build the code and run:
 ```
