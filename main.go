@@ -81,7 +81,7 @@ func main() {
 	if err := tok.Error(); err != nil { panic(err) }
 
 	// generate topic
-	topic := fmt.Sprintf("/devices/%s/%s", device, topicType)
+	topic := fmt.Sprintf("/devices/%s/%s", *device, topicType)
 
 	// publish message 5 times
 	for i := 0; i < 5; i++ {
