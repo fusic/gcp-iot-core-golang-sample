@@ -1,6 +1,17 @@
 GCP Cloud IoT Core sample written in Golang
 
-# License
+## How to use
+Build the code and run:
+```
+./gcp-iot-core-golang-sample \
+    -project_id=${PROJECT_ID} \
+    -registry_id=${REGISTRY_ID} \
+    -device_id=${DEVICE_ID} \
+    -algorithm=${RS256 or ES256} \
+    -private_key_file=${PRIVATE_KEY_FILE_PATH}
+```
+
+## License
 Copyright 2017 Takeshi Watanabe
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
