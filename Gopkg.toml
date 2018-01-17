@@ -18,8 +18,3 @@
 # [[override]]
 #  name = "github.com/x/y"
 #  version = "2.4.0"
-
-[[constraint]]
-  name = "github.com/VolantMQ/volantmq"
-  source = "github.com/fusic/volantmq"
-  branch = "fix_for_gcp"
